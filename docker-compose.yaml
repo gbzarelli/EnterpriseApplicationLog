@@ -3,7 +3,7 @@ services:
 
  ##########################################################
   rabbitmq:
-    container_name: RabbitMQ
+    container_name: rabbit-mq
     image: rabbitmq:3-management-alpine
     volumes:
       - /mnt/teste/elk/storage/rabbitmq/storage/:/var/lib/rabbitmq/mnesia
@@ -16,10 +16,15 @@ services:
       RABBITMQ_DEFAULT_USER: logUser
       RABBITMQ_DEFAULT_PASS: logPwd
       RABBITMQ_DEFAULT_VHOST: EnterpriseLog
+
   ##########################################################
+
   elasticsearch:
-    container_name: ElasticSearch    
-    image: docker.elastic.co/elasticsearch/elasticsearch-oss:6.7.0
+    container_name: elastic-search
+    build: 
+      context: elasticsearch/
+      args:
+        ELK_VERSION: $ELK_VERSION
     environment: 
       - discovery.type=single-node
       - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
@@ -43,10 +48,15 @@ services:
       retries: 5     
     networks:
       - log
+
   ##########################################################
+
   kibana:
-    container_name: Kibana    
-    image: docker.elastic.co/kibana/kibana-oss:6.7.0
+    container_name: kibana    
+    build: 
+      context: kibana/
+      args:
+        ELK_VERSION: $ELK_VERSION
     environment:
       - server.name=kibana
       - server.host="0"
@@ -64,10 +74,15 @@ services:
       retries: 5     
     networks:
       - log
+
   ##########################################################
+
   logstash:
-    container_name: LogStash    
-    image: docker.elastic.co/logstash/logstash-oss:6.7.0
+    container_name: log-stash
+    build: 
+      context: logstash/
+      args:
+        ELK_VERSION: $ELK_VERSION
     volumes:
       - ./logstash/config/:/config/
     links:
@@ -75,14 +90,19 @@ services:
       - elasticsearch:elasticsearch
     networks:
       - log    
-    command: bash -c "logstash-plugin install logstash-input-stomp && logstash -f /config"
+    command: logstash -f /config
     depends_on:
       - rabbitmq
       - elasticsearch
+
   ##########################################################
+
   metricbeat:
     container_name: metricbeat
-    image: docker.elastic.co/beats/metricbeat-oss:6.7.0
+    build: 
+      context: metricbeat/
+      args:
+        ELK_VERSION: $ELK_VERSION
     user: root
     volumes:
       - ./metricbeat/config/product.metricbeat.yml:/usr/share/metricbeat/metricbeat.yml
