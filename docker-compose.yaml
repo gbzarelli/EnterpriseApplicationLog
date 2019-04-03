@@ -6,7 +6,7 @@ services:
     container_name: RabbitMQ
     image: rabbitmq:3-management-alpine
     volumes:
-      - mq_data:/var/lib/rabbitmq/mnesia
+      - /mnt/teste/elk/storage/rabbitmq/storage/:/var/lib/rabbitmq/mnesia
     ports:
       - "15672:15672"
       - "5672:5672" 
@@ -32,7 +32,7 @@ services:
       - http.cors.enabled=true
       - http.cors.allow-origin="*"
     volumes: 
-      - elasticsearch_data:/usr/share/elasticsearch/data      
+      - /mnt/teste/elk/elasticsearch/storage/:/usr/share/elasticsearch/data      
     ports:
       - "9200:9200"
       - "9300:9300"
@@ -69,13 +69,13 @@ services:
     container_name: LogStash    
     image: docker.elastic.co/logstash/logstash-oss:6.7.0
     volumes:
-      - ./product.logstash.conf:/config/product.logstash.conf      
+      - ./logstash/config/:/config/
     links:
       - rabbitmq:AMQPServer
       - elasticsearch:elasticsearch
     networks:
       - log    
-    command: logstash -f /config/product.logstash.conf  
+    command: bash -c "logstash-plugin install logstash-input-stomp && logstash -f /config"
     depends_on:
       - rabbitmq
       - elasticsearch
@@ -85,19 +85,15 @@ services:
     image: docker.elastic.co/beats/metricbeat-oss:6.7.0
     user: root
     volumes:
-      - ./product.metricbeat.yml:/usr/share/metricbeat/metricbeat.yml
+      - ./metricbeat/config/product.metricbeat.yml:/usr/share/metricbeat/metricbeat.yml
       - /var/run/docker.sock:/var/run/docker.sock
     depends_on:
       - elasticsearch
       - kibana
+      - rabbitmq
     restart: on-failure
     networks:
       - log
-
-
-volumes:
-  mq_data:
-  elasticsearch_data:
 
 networks:
   log:
