@@ -1,12 +1,13 @@
 version: '3'
 services:
-
+ ##########################################################
+ ## - execute permissions to volumes (rabbit e elastc): $chown -R 1000:1000 
  ##########################################################
   rabbitmq:
     container_name: rabbit-mq
     image: rabbitmq:3-management-alpine
     volumes:
-      - /mnt/teste/elk/storage/rabbitmq/storage/:/var/lib/rabbitmq/mnesia
+      - ./storage/rabbitmq/:/var/lib/rabbitmq/mnesia
     ports:
       - "15672:15672"
       - "5672:5672" 
@@ -37,7 +38,7 @@ services:
       - http.cors.enabled=true
       - http.cors.allow-origin="*"
     volumes: 
-      - /mnt/teste/elk/elasticsearch/storage/:/usr/share/elasticsearch/data      
+      - ./storage/elk/elasticsearch/:/usr/share/elasticsearch/data      
     ports:
       - "9200:9200"
       - "9300:9300"
@@ -85,6 +86,9 @@ services:
         ELK_VERSION: $ELK_VERSION
     volumes:
       - ./logstash/config/:/config/
+    ports:
+      # Configure input doors to receive from external beats
+      - "5005:5005"
     links:
       - rabbitmq:AMQPServer
       - elasticsearch:elasticsearch
