@@ -1,11 +1,11 @@
 version: '3'
 services:
  ##########################################################
- ## - execute permissions to volumes (rabbit e elastc): $chown -R 1000:1000 
  ##########################################################
   rabbitmq:
     container_name: rabbit-mq
     image: rabbitmq:3-management-alpine
+    user: $USER_UID
     volumes:
       - ./storage/rabbitmq/:/var/lib/rabbitmq/mnesia
     ports:
@@ -37,6 +37,7 @@ services:
       - discovery.zen.minimum_master_nodes=1
       - http.cors.enabled=true
       - http.cors.allow-origin="*"
+    user: $USER_UID
     volumes: 
       - ./storage/elk/elasticsearch/:/usr/share/elasticsearch/data      
     ports:
@@ -84,6 +85,7 @@ services:
       context: logstash/
       args:
         ELK_VERSION: $ELK_VERSION
+    user: $USER_UID
     volumes:
       - ./logstash/config/:/config/
     ports:
