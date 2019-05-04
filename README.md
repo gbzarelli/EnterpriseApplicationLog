@@ -16,10 +16,18 @@ On Windows, set **COMPOSE_CONVERT_WINDOWS_PATHS=1** environment variable to solv
 * PowerShell: `$Env:COMPOSE_CONVERT_WINDOWS_PATHS=1`
 
 ```
-git clone https://github.com/docker-gallery/EnterpriseApplicationLog.git
+git clone https://https://github.com/gbzarelli/EnterpriseApplicationLog.git
 cd ./EnterpriseApplicationLog
+mkdir ./storage
+sudo chown -R {your_user}:{your_group} ./storage
+sudo chown -R root:users ./metricbeat/config
+```
+- Configure your_user in .env file
+```
 docker-compose up
 ```
+- If you have problems with permission after up, run chown again in storage!
+
 ## Releases
 
 I've complete abandon SemVer because this does not represent the semantic needs for versioning this stack.
